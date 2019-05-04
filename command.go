@@ -2,11 +2,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
 
+	"github.com/mattn/go-isatty"
 	"github.com/nsf/termbox-go"
 )
 
@@ -96,10 +98,12 @@ func readFile(filename string, success func([]byte) Message, errorFunc func(erro
 		err     error
 	)
 
-	if filename == "-" {
-		content, err = ioutil.ReadAll(os.Stdin)
-	} else {
+	if filename != "-" {
 		content, err = ioutil.ReadFile(filename)
+	} else if isatty.IsTerminal(os.Stdin.Fd()) {
+		err = errors.New("Cannot use the terminal as input")
+	} else {
+		content, err = ioutil.ReadAll(os.Stdin)
 	}
 
 	if err != nil {
